@@ -71,24 +71,17 @@ function! TeXFold(lnum)
             return 'a1'
         endif
 
-        if line =~ '^\s*\\end{document}'
-          return 0
-        elseif line =~ '^\s*\\end{' . envs
+        if line =~ '^\s*\\end{' . envs
             return 's1'
         endif
     endif
 
     if g:tex_fold_allow_marker
-        if line =~ '%{{{5'
-            return 'a5'
-        elseif line =~ '%{{{'
+        if line =~ '^[^%]*%[^{]*{{{'
             return 'a1'
         endif
 
-        "if line =~ '^[^%]*%[^}]*}}}'
-        if line =~ '%}}}5'
-            return 's5'
-        elseif line =~ '%}}}'
+        if line =~ '^[^%]*%[^}]*}}}'
             return 's1'
         endif
     endif
@@ -100,32 +93,19 @@ function! TeXFoldText()
     let fold_line = getline(v:foldstart)
 
     if fold_line =~ '^\s*\\\(sub\)*section'
-        let pattern = '\\\(\(sub\)*\)section\(\**\){\([^}]*\)}'
-        let repl = ' \3\1' . g:tex_fold_sec_char . ' \4'
-    elseif fold_line =~ '^\s*\\begin{[^}]*}['
-        let pattern = '\\begin{\([^}]*\)}\[\([^\]]*\)\]'
-        let repl = ' ' . g:tex_fold_env_char . ' \1 : (\2)' 
+        let pattern = '\\\(\(sub\)*\)section{\([^}]*\)}'
+        let repl = ' \1' . g:tex_fold_sec_char . ' \3'
     elseif fold_line =~ '^\s*\\begin'
         let pattern = '\\begin{\([^}]*\)}'
         let repl = ' ' . g:tex_fold_env_char . ' \1'
-    elseif fold_line =~ '^\s*%\(.*\)%{{{'
-        "let pattern = '^[^{]*{' . '{{\([.]*\)'
-        let pattern = '^\s*%\(.*\)%{{{'
-        "let repl = '\1'
-        let repl = '%commenté%   \1 |%| '
     elseif fold_line =~ '^[^%]*%[^{]*{{{'
-        "let pattern = '^[^{]*{' . '{{\([.]*\)'
-        let pattern = '^\s*\([^%]*\)%[^{]*{{{'
+        let pattern = '^[^{]*{' . '{{\([.]*\)'
         "let repl = '\1'
-        let repl = '\1 |%| '
+        let repl = '&'
     endif
 
     let line = substitute(fold_line, pattern, repl, '') . ' '
-    let text = '+' . v:folddashes . line
-    "http://stackoverflow.com/a/5319120/6543971
-    let offset = 10
-    let linesNum = v:foldend-v:foldstart + 1
-    return text . repeat('-', 9*winwidth(0)/10-strlen(text) - offset) . '{{'. linesNum .' lignes}}'
+    return '+' . v:folddashes . line
 endfunction
 
 "}}}
