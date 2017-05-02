@@ -54,26 +54,26 @@ function! TeXFold(lnum)
         \['frame', 'table', 'figure', 'align', 'lstlisting']: []
     let envs = '\(' . join(default_envs + g:tex_fold_additional_envs, '\|') . '\)'
 
-    if line =~ '^\s*\\section'
+    if line =~ '^\(\s\|%\)*\\section'
         return '>1'
     endif
 
-    if line =~ '^\s*\\subsection'
+    if line =~ '^\(\s\|%\)*\\subsection'
         return '>2'
     endif
 
-    if line =~ '^\s*\\subsubsection'
+    if line =~ '^\(\s\|%\)*\\subsubsection'
         return '>3'
     endif
 
     if !g:tex_fold_ignore_envs
-        if line =~ '^\s*\\begin{' . envs
+        if line =~ '^\(\s\|%\)*\\begin{' . envs
             return 'a1'
         endif
 
         if line =~ '^\s*\\end{document}'
           return 0
-        elseif line =~ '^\s*\\end{' . envs
+        elseif line =~ '^\(\s\|%\)*\\end{' . envs
             return 's1'
         endif
     endif
@@ -99,6 +99,11 @@ endfunction
 function! TeXFoldText()
     let fold_line = getline(v:foldstart)
 
+    let commente = '     '
+    if fold_line =~ '^\s*%\(.*\)$'
+      let fold_line = substitute(fold_line, '^\(\s\|%\)*%\(.*\)$', '\2' , '')
+      let commente = '{%%} '
+    end
     if fold_line =~ '^\s*\\\(sub\)*section'
         let pattern = '\\\(\(sub\)*\)section\(\**\){\([^}]*\)}'
         let repl = ' \3\1' . g:tex_fold_sec_char . ' \4'
@@ -108,11 +113,11 @@ function! TeXFoldText()
     elseif fold_line =~ '^\s*\\begin'
         let pattern = '\\begin{\([^}]*\)}'
         let repl = ' ' . g:tex_fold_env_char . ' \1'
-    elseif fold_line =~ '^\s*%\(.*\)%{{{'
-        "let pattern = '^[^{]*{' . '{{\([.]*\)'
-        let pattern = '^\s*%\(.*\)%{{{'
-        "let repl = '\1'
-        let repl = '%commenté%   \1 |%| '
+    "elseif fold_line =~ '^\s*%\(.*\)%{{{'
+    "    "let pattern = '^[^{]*{' . '{{\([.]*\)'
+    "    let pattern = '^\s*%\(.*\)%{{{'
+    "    "let repl = '\1'
+    "    let repl = '%commenté%   \1 |%| '
     elseif fold_line =~ '^[^%]*%[^{]*{{{'
         "let pattern = '^[^{]*{' . '{{\([.]*\)'
         let pattern = '^\s*\([^%]*\)%[^{]*{{{'
@@ -120,7 +125,7 @@ function! TeXFoldText()
         let repl = '\1 |%| '
     endif
 
-    let line = substitute(fold_line, pattern, repl, '') . ' '
+    let line = commente . substitute(fold_line, pattern, repl, '') . ' '
     let text = '+' . v:folddashes . line
     "http://stackoverflow.com/a/5319120/6543971
     let offset = 10
