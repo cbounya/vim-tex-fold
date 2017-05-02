@@ -99,10 +99,12 @@ endfunction
 function! TeXFoldText()
     let fold_line = getline(v:foldstart)
 
-    let commente = '     '
-    if fold_line =~ '^\s*%\(.*\)$'
-      let fold_line = substitute(fold_line, '^\(\s\|%\)*%\(.*\)$', '\2' , '')
-      let commente = '{%%} '
+    let commente = '{  }'
+    if fold_line =~ '^\s*%' "commence par un %
+      if !(fold_line =~ '^\s*%\({{{\|}}}\)') "commence par %{{{
+        let fold_line = substitute(fold_line, '^\(\s\|%\)*%\(.*\)$, '\1' , '')
+        let commente = '{%%}'
+      end
     end
     if fold_line =~ '^\s*\\\(sub\)*section'
         let pattern = '\\\(\(sub\)*\)section\(\**\){\([^}]*\)}'
