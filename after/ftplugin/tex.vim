@@ -101,8 +101,8 @@ function! TeXFoldText()
 
     let commente = '{  }'
     if fold_line =~ '^\s*%' "commence par un %
-      if !(fold_line =~ '^\s*%\({{{\|}}}\)') "commence par %{{{
-        let fold_line = substitute(fold_line, '^\(\s\|%\)*%\(.*\)$, '\1' , '')
+      if !(fold_line =~ '^\s*%\({{{\|}}}\)') "à moins que commentée par commence par %{{{
+        let fold_line = substitute(fold_line, '^[[:space:]%]*\({{{\)\@!', '' , '') "on enleve le commentaire init
         let commente = '{%%}'
       end
     end
@@ -120,11 +120,11 @@ function! TeXFoldText()
     "    let pattern = '^\s*%\(.*\)%{{{'
     "    "let repl = '\1'
     "    let repl = '%commenté%   \1 |%| '
-    elseif fold_line =~ '^[^%]*%[^{]*{{{'
+    elseif fold_line =~ '%.*{{{'
         "let pattern = '^[^{]*{' . '{{\([.]*\)'
         let pattern = '^\s*\([^%]*\)%[^{]*{{{'
         "let repl = '\1'
-        let repl = '\1 |%| '
+        let repl = ' \1 |%| '
     endif
 
     let line = commente . substitute(fold_line, pattern, repl, '') . ' '
