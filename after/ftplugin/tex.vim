@@ -23,8 +23,12 @@ if !exists('g:tex_fold_allow_marker')
     let g:tex_fold_allow_marker = 1
 endif
 
-if !exists('g:tex_fold_additional_envs')
-    let g:tex_fold_additional_envs = []
+if !exists('b:tex_fold_additional_envs')
+  if !exists('g:tex_fold_additional_envs')
+    let b:tex_fold_additional_envs = g:tex_fold_additional_envs
+  else
+    let b:tex_fold_additional_envs = []
+  endif
 endif
 
 if !exists('g:tex_fold_use_default_envs')
@@ -52,7 +56,7 @@ function! TeXFold(lnum)
     let line = getline(a:lnum)
     let default_envs = g:tex_fold_use_default_envs?
         \['frame', 'table', 'figure', 'align', 'lstlisting']: []
-    let envs = '\(' . join(default_envs + g:tex_fold_additional_envs, '\|') . '\)'
+    let envs = '\(' . join(default_envs + b:tex_fold_additional_envs, '\|') . '\)'
 
     if line =~ '^\(\s\|%\)*\\section'
         return '>1'
@@ -97,9 +101,10 @@ function! TeXFold(lnum)
 endfunction
 
 function! TeXFoldText()
+    let fillChar = '·'
     let fold_line = getline(v:foldstart)
 
-    let commente = '{  }'
+    let commente = '{' . fillChar . fillChar . '}'
     if fold_line =~ '^\s*%' "commence par un %
       if !(fold_line =~ '^\s*%\({{{\|}}}\)') "à moins que commentée par commence par %{{{
         let fold_line = substitute(fold_line, '^[[:space:]%]*\({{{\)\@!', '' , '') "on enleve le commentaire init
@@ -127,12 +132,12 @@ function! TeXFoldText()
         let repl = ' \1 |%| '
     endif
 
-    let line = commente . substitute(fold_line, pattern, repl, '') . ' '
-    let text = '+' . v:folddashes . line
+    let line = substitute(fold_line, pattern, repl, '') . ' '
+    let text = '+-' . commente . v:folddashes . v:folddashes . substitute(line, '\s*$', '' , '') . ' '
     "http://stackoverflow.com/a/5319120/6543971
     let offset = 10
     let linesNum = v:foldend-v:foldstart + 1
-    return text . repeat('-', 9*winwidth(0)/10-strlen(text) - offset) . '{{'. linesNum .' lignes}}'
+    return text . repeat(fillChar, 9*winwidth(0)/10 - strlen(text) - offset) . '{{'. linesNum .' lignes}}' . repeat(fillChar, offset + winwidth(0)/10)
 endfunction
 
 "}}}
