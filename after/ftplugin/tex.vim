@@ -1,3 +1,4 @@
+" vim: foldmarker=(((,)))
 " =============================================================================
 " File: ftplugin/tex.vim
 " Description: Provide foldexpr and foldtext for TeX files
@@ -5,7 +6,7 @@
 "
 " =============================================================================
 
-"{{{ Globals
+"((( Globals
 
 if !exists('g:tex_fold_sec_char')
     let g:tex_fold_sec_char = '➜'
@@ -24,6 +25,7 @@ if !exists('g:tex_fold_allow_marker')
 endif
 
 if !exists('b:tex_fold_additional_envs')
+  echo "PAS DE TEX_FOLD"
   if !exists('g:tex_fold_additional_envs')
     let b:tex_fold_additional_envs = g:tex_fold_additional_envs
   else
@@ -39,8 +41,8 @@ if !exists('g:tex_fold_ignore_envs')
     let g:tex_fold_ignore_envs = 0
 endif
 
-"}}}
-"{{{ Fold options
+")))
+"((( Fold options
 
 setlocal foldmethod=expr
 setlocal foldexpr=TeXFold(v:lnum)
@@ -49,14 +51,18 @@ if g:tex_fold_override_foldtext
     setlocal foldtext=TeXFoldText()
 endif
 
-"}}}
-"{{{ Functions
+")))
+"((( Functions
 
 function! TeXFold(lnum)
     let line = getline(a:lnum)
     let default_envs = g:tex_fold_use_default_envs?
         \['frame', 'table', 'figure', 'align', 'lstlisting']: []
     let envs = '\(' . join(default_envs + b:tex_fold_additional_envs, '\|') . '\)'
+
+    if line =~ '^\(\s\|%\)*\\chapter'
+        return '0'
+    endif
 
     if line =~ '^\(\s\|%\)*\\section'
         return '>1'
@@ -136,16 +142,16 @@ function! TeXFoldText()
     let text = '+-' . commente . v:folddashes . v:folddashes . substitute(line, '\s*$', '' , '') . ' '
     "http://stackoverflow.com/a/5319120/6543971
     let offset = 10
-    let linesNum = v:foldend-v:foldstart + 1
-    return text . repeat(fillChar, 9*winwidth(0)/10 - strlen(text) - offset) . '{{'. linesNum .' lignes}}' . repeat(fillChar, offset + winwidth(0)/10)
+    let linesNum = printf("%4S",v:foldend-v:foldstart + 1)
+    return text . repeat(fillChar, 9*winwidth(0)/10 - strdisplaywidth(text) - offset) . '{{'. linesNum .' ln  }}' . repeat(fillChar, offset + winwidth(0)/10)
 endfunction
 
-"}}}
-"{{{ Undo
+")))
+"((( Undo
 
 if exists('b:undo_ftplugin')
   let b:undo_ftplugin .= "|setl foldexpr< foldmethod< foldtext<"
 else
   let b:undo_ftplugin = "setl foldexpr< foldmethod< foldtext<"
 endif
-"}}}
+")))
